@@ -1,0 +1,61 @@
+@isTest
+public class DI_ContainerInjectorTest 
+{
+    @isTest
+    static void createNewInstanceStubTest()
+    {
+        DI_ContainerInjector.createInstanceStub('DI_ContainerInjectorTest2', DI_ContainerInjectorTest2.class, 'DI_ContainerInjectorTest.DI_ContainerInjectorStub');
+        DI_ContainerInjector.newInstance('DI_ContainerInjectorTest2');
+    }
+    
+    @isTest
+    static void createGetInstanceStubTest()
+    {
+        DI_ContainerInjector.createInstanceStub('DI_ContainerInjector', Test.createStub(DI_ContainerInjector.class, new DI_ContainerInjectorStub()));
+        DI_ContainerInjector.getInstance('DI_ContainerInjector');
+    }
+    
+    @isTest
+    static void newInstance()
+    {
+        DI_ContainerInjector.newInstance('DI_ContainerInjectorTest2');
+    }
+    
+    @isTest
+    static void getInstance()
+    {
+        DI_ContainerInjector.getInstance('DI_ContainerInjectorTest2');
+    }
+    
+	
+    @isTest
+    static void createInstanceStubParams()
+    {
+        DI_ContainerInjector.createInstanceStub('DI_ContainerInjectorTest2', DI_ContainerInjectorTest2.class, 'DI_ContainerInjectorTest.DI_ContainerInjectorStub');
+        DI_ContainerInjector.newInstance('DI_ContainerInjectorTest2', new DI_ContainerInjectorTest2());
+    }  
+    
+    @isTest
+    static void newInstanceWithParams()
+    {
+        DI_ContainerInjector.newInstance('DI_ContainerInjectorTest2', new DI_ContainerInjectorTest2());
+    }  
+    
+    public class DI_ContainerInjectorStub implements System.StubProvider
+    {
+         public Object handleMethodCall(
+            Object stubbedObject, 
+            String stubbedMethodName,
+            Type returnType, 
+            List<System.Type> 
+            listOfParamTypes, 
+            List<String> listOfParamNames,
+            List<Object> listOfArgs
+        )
+        {     
+            Object returnValue;
+            
+            return returnValue;
+        }
+    }
+}

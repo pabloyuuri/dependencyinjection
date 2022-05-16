@@ -1,0 +1,165 @@
+/**
+*  @author Pablo Yuri Araújo
+**/
+
+public class DI_ContainerInjector  
+{   
+    private class InjectorException extends Exception {}
+    private static Map<String, Object> mapInstances = new Map<String, Object>();
+    private static Map<String, String> mapStubClass = new Map<String, String>();
+    
+    // Create Instance Stubs
+    public static void createInstanceStub(String key, Object classReference, String classStub)
+    {
+        mapInstances.put(key, classReference);
+        mapStubClass.put(key, classStub);
+    }
+    
+    public static void createInstanceStub(String key, Object instance)
+    {
+        mapInstances.put(key, instance);
+    }
+    
+    @TestVisible
+    private static Object createInstanceStub(Object classReference, String classStub, Object params)
+    {
+        Object toObject;
+        try
+        {
+            Type toType = Type.forName(classStub);
+            toObject = Test.createStub(((System.Type) classReference), (System.StubProvider) toType.newInstance());
+        }
+        catch(Exception e)
+        {
+            throw new InjectorException('Classe Stub com estado '+classStub+' não tem um construtor vazio ou não existe.' + e);
+        }
+        
+        return toObject;
+    }
+    
+    @TestVisible
+    private static Object createInstanceStub(Object classReference, String classStub)
+    {
+        Object instance;
+
+        try{
+            Type toType = Type.forName(classStub);
+            instance = Test.createStub((System.Type) classReference, (System.StubProvider) toType.newInstance());
+        }catch(Exception e){
+            throw new InjectorException('Classe Stub estática '+classStub+' não tem um construtor vazio ou não existe.' + e);
+        }
+        return instance;
+    }
+    
+    // New Instance with params
+    public static Object newInstance(String key, Object params)
+    {
+        return setInstance(key, params, 'newInstance');
+    }
+    
+    // New Instance without params
+    public static Object newInstance(String key)
+    {
+        return setInstance(key, null, 'newInstance');
+    }
+    
+    
+    // Get Instance
+    public static Object getInstance(String key)
+    {
+        if(mapInstances.containsKey(key) && !(mapInstances.get(key) instanceof String)){
+            return mapInstances.get(key);
+        }
+        
+        if(mapInstances.containsKey(key) && mapInstances.get(key) instanceof String)
+            throw new InjectorException(key+' não é estática; não encontrada; use "newInstance" caso queira uma nova instancia com estado.');
+        
+        return setInstance(key, null, 'getInstance');
+    }
+        
+    public static Object setInstance(String key, Object params, String typeMethod)
+    {
+        String className;
+        Object instance;
+       
+        if(key == null)
+        {
+            throw new InjectorException('Classe não especificada');
+        }
+        
+        if(!mapInstances.containsKey(key))
+        {
+            className = key;
+            instance = setInstance(className, params);
+            
+            if(typeMethod == 'getInstance')
+            {
+                mapInstances.put(key, instance);
+            }
+            else
+            {
+                mapInstances.put(key, key);
+            }
+        }
+        else
+        {
+            if(mapInstances.get(key) instanceOf String)
+            {
+                className = (String) mapInstances.get(key);
+                instance = setInstance(className, params);
+            }
+            else if(Test.isRunningTest() && mapStubClass.containsKey(key))
+                instance = params == null ? createInstanceStub(mapInstances.get(key), mapStubClass.get(key)) : createInstanceStub(mapInstances.get(key), mapStubClass.get(key), params);
+            else
+                instance = mapInstances.get(key);
+        }
+        
+        return instance;
+    }
+    
+    public static Object setInstance(String className, Object params)
+    {
+        return params == null ? getIntanceByClassName(className) : getIntanceByClassName(className, params);
+    }
+    
+    @TestVisible
+    private static Object getIntanceByClassName(String className)
+    {
+        Object instance;
+        
+        try{
+            Type toType = Type.forName(className);
+            instance = toType.newInstance();
+        }catch(Exception e){
+            throw new InjectorException('Classe '+className+' não tem um construtor vazio ou não existe. ' + e);
+        }
+        return instance;
+    }
+    
+    @TestVisible
+    private static Object getIntanceByClassName(String className, Object params)
+    {
+        Object toObject;
+        try
+        {
+            Type toType = Type.forName(className);
+            toObject = toType.newInstance();
+        }
+        catch(Exception e)
+        {
+            throw new InjectorException('Classe '+className+' não tem um construtor vazio ou não existe. ' + e);
+        }
+        
+        if(params != null)
+        {
+            if(toObject instanceof IDI_Provider)
+            {
+                return ((IDI_Provider) toObject).newInstance(params);
+            }
+
+            throw new InjectorException('Classe '+className+' não implementa a interface "IDI_Provider". ' + e);
+        }
+
+        return toObject;
+    }
+}
